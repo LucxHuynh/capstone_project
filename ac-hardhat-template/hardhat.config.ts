@@ -40,13 +40,13 @@ module.exports = {
     "sepolia": {
       url: "https://eth-sepolia.public.blastapi.io",
       chainId: 11155111,
-      accounts: [testnetPrivateKey],
+      accounts: testnetPrivateKey ? [testnetPrivateKey] : [],
       timeout: 40000,
     },
     "ethereum": {
       url: "https://eth-mainnet.public.blastapi.io",
       chainId: 1,
-      accounts: [mainnetPrivateKey],
+      accounts: mainnetPrivateKey ? [mainnetPrivateKey] : [],
       timeout: 60000,
     }
   },

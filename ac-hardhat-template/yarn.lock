@@ -78,9 +78,9 @@
     tslib "^2.6.2"
 
 "@aws-sdk/client-lambda@^3.563.0":
-  version "3.848.0"
-  resolved "https://registry.yarnpkg.com/@aws-sdk/client-lambda/-/client-lambda-3.848.0.tgz#4162b569c20dc2caf38445b672b18d4613f4b15b"
-  integrity sha512-kxFzSsXPq8ZiFU23q3tOLi40Aqz43VPmBqDfVZbDXOV1kESGMop+sWFEToSolfV85OTYlFHa29OpgxqHpC3zbg==
+  version "3.851.0"
+  resolved "https://registry.yarnpkg.com/@aws-sdk/client-lambda/-/client-lambda-3.851.0.tgz#0e4d9dafca834be657597d96b0443c08be7a3498"
+  integrity sha512-wChFgkDH4TepG9HdqVAVYLrczzab4PN2hogK3k/h2KJKoHFiSjY66tlDlZ/CueLk09u3PGMkVrDBDEs0znaXIA==
   dependencies:
     "@aws-crypto/sha256-browser" "5.2.0"
     "@aws-crypto/sha256-js" "5.2.0"
@@ -676,9 +676,10 @@
     "@ethereumjs/common" "^2.6.0"
     ethereumjs-util "^7.1.3"
 
-"@ethereumjs/tx@^10.0.0", "@ethereumjs/tx@github:yann300/ethereumjs-vm#fixV10":
+"@ethereumjs/tx@^10.0.0":
   version "10.0.0"
-  resolved "https://codeload.github.com/yann300/ethereumjs-vm/tar.gz/47bc5c90b40b01954651392c0fcb767de43b553f"
+  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-10.0.0.tgz#100ee3cf4cb7342cabeb4f0ec41f4ccadf50df26"
+  integrity sha512-DApm04kp2nbvaOuHy2Rkcz1ZeJkTVgW6oCuNnQf9bRtGc+LsvLrdULE3LoGtBItEoNEcgXLJqrV0foooWFX6jw==
   dependencies:
     "@ethereumjs/common" "^10.0.0"
     "@ethereumjs/rlp" "^10.0.0"
@@ -692,6 +693,15 @@
   dependencies:
     "@ethereumjs/common" "^2.6.4"
     ethereumjs-util "^7.1.5"
+
+"@ethereumjs/tx@github:yann300/ethereumjs-vm#fixV10":
+  version "10.0.0"
+  resolved "https://codeload.github.com/yann300/ethereumjs-vm/tar.gz/47bc5c90b40b01954651392c0fcb767de43b553f"
+  dependencies:
+    "@ethereumjs/common" "^10.0.0"
+    "@ethereumjs/rlp" "^10.0.0"
+    "@ethereumjs/util" "^10.0.0"
+    ethereum-cryptography "^3.2.0"
 
 "@ethereumjs/util@^10.0.0":
   version "10.0.0"
@@ -1582,7 +1592,7 @@
   dependencies:
     "@noble/hashes" "1.8.0"
 
-"@noble/curves@^1.4.0", "@noble/curves@^1.6.0", "@noble/curves@^1.9.0", "@noble/curves@^1.9.1", "@noble/curves@~1.9.0", "@noble/curves@~1.9.2":
+"@noble/curves@^1.4.0", "@noble/curves@^1.6.0", "@noble/curves@^1.9.0", "@noble/curves@^1.9.1", "@noble/curves@~1.9.0":
   version "1.9.4"
   resolved "https://registry.yarnpkg.com/@noble/curves/-/curves-1.9.4.tgz#a748c6837ee7854a558cc3b951aedd87a5e7d6a5"
   integrity sha512-2bKONnuM53lINoDrSmK8qP8W271ms7pygDhZt4SiLOoLwBtoHqeCFi6RG42V8zd3mLHuJFhU/Bmaqo4nX0/kBw==
@@ -1630,11 +1640,6 @@
   version "1.8.0"
   resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-1.8.0.tgz#cee43d801fcef9644b11b8194857695acd5f815a"
   integrity sha512-jCs9ldd7NwzpgXDIf6P3+NrHh9/sD6CQdxHyjQI+h/6rDNo88ypBxxz45UDuZHz9r3tNz7N/VInSVoVdtXEI4A==
-
-"@noble/hashes@2.0.0-beta.1":
-  version "2.0.0-beta.1"
-  resolved "https://registry.yarnpkg.com/@noble/hashes/-/hashes-2.0.0-beta.1.tgz#641fd2f13e25ae2acdc7d0b082289a5adeda13cf"
-  integrity sha512-xnnogJ6ccNZ55lLgWdjhBqKUdFoznjpFr3oy23n5Qm7h+ZMtt8v4zWvHg9zRW6jcETweplD5F4iUqb0SSPC+Dw==
 
 "@noble/secp256k1@1.7.1":
   version "1.7.1"
@@ -2600,9 +2605,9 @@
     tslib "^2.6.2"
 
 "@solidity-parser/parser@^0.20.1":
-  version "0.20.1"
-  resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.20.1.tgz#88efee3e0946a4856ed10355017692db9c259ff4"
-  integrity sha512-58I2sRpzaQUN+jJmWbHfbWf9AKfzqCI8JAdFB0vbyY+u8tBRcuTt9LxzasvR0LGQpcRv97eyV7l61FQ3Ib7zVw==
+  version "0.20.2"
+  resolved "https://registry.yarnpkg.com/@solidity-parser/parser/-/parser-0.20.2.tgz#e07053488ed60dae1b54f6fe37bb6d2c5fe146a7"
+  integrity sha512-rbu0bzwNvMcwAjH86hiEAcOeRI2EeK8zCkHDrFykh/Al8mvJeFmjy3UrE7GYQjNwOgbGUUtCn5/k8CB8zIu7QA==
 
 "@szmarczak/http-timer@^1.1.2":
   version "1.1.2"
@@ -2763,9 +2768,9 @@
     form-data "^4.0.0"
 
 "@types/node@*":
-  version "24.0.15"
-  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.0.15.tgz#f34fbc973e7d64217106e0c59ed8761e6b51381e"
-  integrity sha512-oaeTSbCef7U/z7rDeJA138xpG3NuKc64/rZ2qmUFkFJmnMsAPaluIifqyWd8hSSMxyP9oie3dLAqYPblag9KgA==
+  version "24.1.0"
+  resolved "https://registry.yarnpkg.com/@types/node/-/node-24.1.0.tgz#0993f7dc31ab5cc402d112315b463e383d68a49c"
+  integrity sha512-ut5FthK5moxFKH2T1CUOC6ctR67rQRvvHdFLCD2Ql6KXmMuCrjsSsRI9UsLCm9M18BMwClv4pn327UvB7eeO1w==
   dependencies:
     undici-types "~7.8.0"
 
@@ -4894,9 +4899,9 @@ hardhat-gas-reporter@2.3.0:
     viem "^2.27.0"
 
 hardhat@^2.25.0:
-  version "2.26.0"
-  resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.26.0.tgz#8244d7be2ae69f89240fba78f4e35adf5883c764"
-  integrity sha512-hwEUBvMJzl3Iuru5bfMOEDeF2d7cbMNNF46rkwdo8AeW2GDT4VxFLyYWTi6PTLrZiftHPDiKDlAdAiGvsR9FYA==
+  version "2.26.1"
+  resolved "https://registry.yarnpkg.com/hardhat/-/hardhat-2.26.1.tgz#c5f7418be0cba5224c6ac42eae3e24db113e55f6"
+  integrity sha512-CXWuUaTtehxiHPCdlitntctfeYRgujmXkNX5gnrD5jdA6HhRQt+WWBZE/gHXbE29y/wDmmUL2d652rI0ctjqjw==
   dependencies:
     "@ethereumjs/util" "^9.1.0"
     "@ethersproject/abi" "^5.1.2"
@@ -4921,7 +4926,7 @@ hardhat@^2.25.0:
     json-stream-stringify "^3.1.4"
     keccak "^3.0.2"
     lodash "^4.17.11"
-    micro-eth-signer "^0.16.0"
+    micro-eth-signer "^0.14.0"
     mnemonist "^0.38.0"
     mocha "^10.0.0"
     p-map "^4.0.0"
@@ -5668,7 +5673,7 @@ lodash.truncate@^4.4.2:
   resolved "https://registry.yarnpkg.com/lodash.truncate/-/lodash.truncate-4.4.2.tgz#5a350da0b1113b837ecfffd5812cbe58d6eae193"
   integrity sha512-jttmRe7bRse52OsWIMDLaXxWqRAmtIUccAQ3garviCqJjafXOfNMO0yMfNpdD6zbGaTU0P5Nz7e7gAT6cKmJRw==
 
-lodash@^4.17.11, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.21:
+lodash@4.17.21, lodash@^4.17.11, lodash@^4.17.14, lodash@^4.17.15, lodash@^4.17.21:
   version "4.17.21"
   resolved "https://registry.yarnpkg.com/lodash/-/lodash-4.17.21.tgz#679591c564c3bffaae8454cf0b3df370c3d6911c"
   integrity sha512-v2kDEe57lecTulaDIuNTPy3Ry4gLGJ6Z1O3vE1krgXZNrsQ+LFTGHVxVjcXPs17LhbZVGedAJv8XZ1tvj5FvSg==
@@ -5802,7 +5807,7 @@ merkle-patricia-tree@^4.2.2, merkle-patricia-tree@^4.2.4:
     readable-stream "^3.6.0"
     semaphore-async-await "^1.5.1"
 
-micro-eth-signer@0.14.0:
+micro-eth-signer@0.14.0, micro-eth-signer@^0.14.0:
   version "0.14.0"
   resolved "https://registry.yarnpkg.com/micro-eth-signer/-/micro-eth-signer-0.14.0.tgz#8aa1fe997d98d6bdf42f2071cef7eb01a66ecb22"
   integrity sha512-5PLLzHiVYPWClEvZIXXFu5yutzpadb73rnQCpUqIHu3No3coFuWQNfE5tkBQJ7djuLYl6aRLaS0MgWJYGoqiBw==
@@ -5811,16 +5816,7 @@ micro-eth-signer@0.14.0:
     "@noble/hashes" "~1.7.1"
     micro-packed "~0.7.2"
 
-micro-eth-signer@^0.16.0:
-  version "0.16.0"
-  resolved "https://registry.yarnpkg.com/micro-eth-signer/-/micro-eth-signer-0.16.0.tgz#a35d0de41ae9164ec96150a0f1fc29e7635ff106"
-  integrity sha512-rsSJcMGfY+kt3ROlL3U6y5BcjkK2H0zDKUQV6soo1JvjrctKKe+X7rKB0YIuwhWjlhJIoVHLuRYF+GXyyuVXxQ==
-  dependencies:
-    "@noble/curves" "~1.9.2"
-    "@noble/hashes" "2.0.0-beta.1"
-    micro-packed "~0.7.3"
-
-micro-packed@~0.7.2, micro-packed@~0.7.3:
+micro-packed@~0.7.2:
   version "0.7.3"
   resolved "https://registry.yarnpkg.com/micro-packed/-/micro-packed-0.7.3.tgz#59e96b139dffeda22705c7a041476f24cabb12b6"
   integrity sha512-2Milxs+WNC00TRlem41oRswvw31146GiSaoCT7s3Xi2gMUglW5QBeqlQaZeHr5tJx9nm3i57LNXPqxOOaWtTYg==
@@ -7464,9 +7460,9 @@ viem@2.22.3:
     ws "8.18.0"
 
 viem@^2.27.0:
-  version "2.32.0"
-  resolved "https://registry.yarnpkg.com/viem/-/viem-2.32.0.tgz#6994fce43c5feed21367c80dd488a755838101da"
-  integrity sha512-pHwKXQSyEWX+8ttOQJdU5dSBfYd6L9JxARY/Sx0MBj3uF/Zaiqt6o1SbzjFjQXkNzWSgtxK7H89ZI1SMIA2iLQ==
+  version "2.33.0"
+  resolved "https://registry.yarnpkg.com/viem/-/viem-2.33.0.tgz#d4ed73a69e26507c523ae70d19548572bfedc0f8"
+  integrity sha512-SxBM3CmeU+LWLlBclV9MPdbuFV8mQEl0NeRc9iyYU4a7Xb5sr5oku3s/bRGTPpEP+1hCAHYpM09/ui3/dQ6EsA==
   dependencies:
     "@noble/curves" "1.9.2"
     "@noble/hashes" "1.8.0"
