@@ -67,6 +67,21 @@ yarn hardhat verify --network sepolia <STAKING_CONTRACT_ADDRESS> <TOKEN_ADDRESS>
 yarn hardhat deploy --network ethereum --tags StakingContract
 ```
 
+## Run CLI
+
+### Localhost
+```bash
+# Terminal 1 (để chạy liên tục)
+yarn hardhat node
+
+# # Terminal 2 (commands). Deploy in another terminal
+yarn hardhat deploy --tags StakingContract --network localhost
+
+# Run CLI(other terminal)
+yarn hardhat run scripts/staking-cli.ts --network localhost
+```
+
+
 ## 📊 Contract Info
 
 ### Staking Terms

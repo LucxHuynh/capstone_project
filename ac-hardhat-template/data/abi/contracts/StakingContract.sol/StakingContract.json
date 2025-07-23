@@ -3,7 +3,7 @@
         "inputs": [
             {
                 "internalType": "address",
-                "name": "_stakingToken",
+                "name": "_token",
                 "type": "address"
             }
         ],
@@ -12,27 +12,22 @@
     },
     {
         "inputs": [],
-        "name": "InsufficientContractBalance",
+        "name": "InsufficientBalance",
         "type": "error"
     },
     {
         "inputs": [],
-        "name": "InvalidAmount",
+        "name": "InvalidInput",
         "type": "error"
     },
     {
         "inputs": [],
-        "name": "InvalidStakeId",
+        "name": "InvalidStake",
         "type": "error"
     },
     {
         "inputs": [],
-        "name": "InvalidTerm",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "NoRewardsToClaim",
+        "name": "NotReady",
         "type": "error"
     },
     {
@@ -74,14 +69,29 @@
         "type": "error"
     },
     {
-        "inputs": [],
-        "name": "StakeAlreadyWithdrawn",
-        "type": "error"
-    },
-    {
-        "inputs": [],
-        "name": "TermNotCompleted",
-        "type": "error"
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "address",
+                "name": "user",
+                "type": "address"
+            },
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "stakeId",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "reward",
+                "type": "uint256"
+            }
+        ],
+        "name": "Claimed",
+        "type": "event"
     },
     {
         "anonymous": false,
@@ -109,34 +119,9 @@
                 "internalType": "uint256",
                 "name": "term",
                 "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "interestRate",
-                "type": "uint256"
             }
         ],
         "name": "Deposited",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "owner",
-                "type": "address"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            }
-        ],
-        "name": "EmergencyWithdraw",
         "type": "event"
     },
     {
@@ -176,32 +161,7 @@
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "reward",
-                "type": "uint256"
-            }
-        ],
-        "name": "RewardClaimed",
-        "type": "event"
-    },
-    {
-        "anonymous": false,
-        "inputs": [
-            {
-                "indexed": true,
-                "internalType": "address",
-                "name": "user",
-                "type": "address"
-            },
-            {
-                "indexed": true,
-                "internalType": "uint256",
-                "name": "stakeId",
-                "type": "uint256"
-            },
-            {
-                "indexed": false,
-                "internalType": "uint256",
-                "name": "amount",
+                "name": "principal",
                 "type": "uint256"
             },
             {
@@ -222,7 +182,7 @@
     },
     {
         "inputs": [],
-        "name": "EARLY_WITHDRAWAL_PENALTY",
+        "name": "PENALTY_RATE",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -235,7 +195,7 @@
     },
     {
         "inputs": [],
-        "name": "INTEREST_12_MONTHS",
+        "name": "RATE_12_MONTHS",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -248,7 +208,7 @@
     },
     {
         "inputs": [],
-        "name": "INTEREST_3_MONTHS",
+        "name": "RATE_3_MONTHS",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -261,7 +221,7 @@
     },
     {
         "inputs": [],
-        "name": "INTEREST_6_MONTHS",
+        "name": "RATE_6_MONTHS",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -309,35 +269,6 @@
             }
         ],
         "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "amount",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "interestRate",
-                "type": "uint256"
-            },
-            {
-                "internalType": "uint256",
-                "name": "term",
-                "type": "uint256"
-            }
-        ],
-        "name": "calculateReward",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "pure",
         "type": "function"
     },
     {
@@ -397,7 +328,7 @@
                 "type": "uint256"
             }
         ],
-        "name": "getAvailableReward",
+        "name": "getReward",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -406,38 +337,6 @@
             }
         ],
         "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [],
-        "name": "getContractBalance",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "term",
-                "type": "uint256"
-            }
-        ],
-        "name": "getInterestRate",
-        "outputs": [
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "stateMutability": "pure",
         "type": "function"
     },
     {
@@ -453,7 +352,7 @@
                 "type": "uint256"
             }
         ],
-        "name": "getUserStake",
+        "name": "getStake",
         "outputs": [
             {
                 "components": [
@@ -469,17 +368,12 @@
                     },
                     {
                         "internalType": "uint64",
-                        "name": "startTime",
-                        "type": "uint64"
-                    },
-                    {
-                        "internalType": "uint64",
                         "name": "endTime",
                         "type": "uint64"
                     },
                     {
                         "internalType": "uint32",
-                        "name": "interestRate",
+                        "name": "rate",
                         "type": "uint32"
                     },
                     {
@@ -504,7 +398,7 @@
                 "type": "address"
             }
         ],
-        "name": "getUserStakes",
+        "name": "getStakes",
         "outputs": [
             {
                 "components": [
@@ -520,17 +414,12 @@
                     },
                     {
                         "internalType": "uint64",
-                        "name": "startTime",
-                        "type": "uint64"
-                    },
-                    {
-                        "internalType": "uint64",
                         "name": "endTime",
                         "type": "uint64"
                     },
                     {
                         "internalType": "uint32",
-                        "name": "interestRate",
+                        "name": "rate",
                         "type": "uint32"
                     },
                     {
@@ -545,25 +434,6 @@
             }
         ],
         "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "uint256",
-                "name": "term",
-                "type": "uint256"
-            }
-        ],
-        "name": "isValidTerm",
-        "outputs": [
-            {
-                "internalType": "bool",
-                "name": "",
-                "type": "bool"
-            }
-        ],
-        "stateMutability": "pure",
         "type": "function"
     },
     {
@@ -658,17 +528,12 @@
             },
             {
                 "internalType": "uint64",
-                "name": "startTime",
-                "type": "uint64"
-            },
-            {
-                "internalType": "uint64",
                 "name": "endTime",
                 "type": "uint64"
             },
             {
                 "internalType": "uint32",
-                "name": "interestRate",
+                "name": "rate",
                 "type": "uint32"
             },
             {

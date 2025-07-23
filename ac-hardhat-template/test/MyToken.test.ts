@@ -9,8 +9,13 @@ describe("MyToken", function () {
     const [owner, addr1, addr2] = await ethers.getSigners();
 
     const MyToken = await ethers.getContractFactory("MyToken");
-    const myToken = await MyToken.deploy();
+    const myToken = await MyToken.deploy(
+      "MyToken", 
+      "MTK", 
+      ethers.parseEther("1000000")
+    );
     await myToken.waitForDeployment();
+    
     return { myToken, owner, addr1, addr2 };
   }
 

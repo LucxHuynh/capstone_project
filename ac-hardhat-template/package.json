@@ -10,7 +10,9 @@
     "size": "hardhat size-contracts",
     "clean": "hardhat clean",
     "run:sepolia": "hardhat run --network sepolia",
-    "run:ethereum": "hardhat run --network ethereum"
+    "run:ethereum": "hardhat run --network ethereum",
+    "cli": "hardhat run scripts/staking-cli.ts",
+    "cli:sepolia": "hardhat run scripts/staking-cli.ts --network sepolia"
   },
   "license": "ISC",
   "devDependencies": {

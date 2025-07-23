@@ -1,5 +1,6 @@
 import { HardhatRuntimeEnvironment } from "hardhat/types";
 import { DeployFunction } from "hardhat-deploy/types";
+import { ethers } from "hardhat";
 
 const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployments, getNamedAccounts } = hre;
@@ -7,22 +8,19 @@ const func: DeployFunction = async function (hre: HardhatRuntimeEnvironment) {
   const { deployer } = await getNamedAccounts();
 
   console.log("====================");
-  console.log(hre.network.name);
-  console.log("====================");
-
-  console.log("====================");
   console.log("Deploy MyToken Contract");
   console.log("====================");
 
   await deploy("MyToken", {
-    contract: "MyToken",
-    args: [],
     from: deployer,
+    args: [
+      "USD Coin",
+      "USDC", 
+      ethers.parseEther("1000000")
+    ],
     log: true,
-    autoMine: true,
-    skipIfAlreadyDeployed: false,
   });
 };
 
-func.tags = ["mytoken"];
 export default func;
+func.tags = ["MyToken"];
