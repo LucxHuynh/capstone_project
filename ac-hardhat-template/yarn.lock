@@ -676,10 +676,9 @@
     "@ethereumjs/common" "^2.6.0"
     ethereumjs-util "^7.1.3"
 
-"@ethereumjs/tx@^10.0.0":
+"@ethereumjs/tx@^10.0.0", "@ethereumjs/tx@github:yann300/ethereumjs-vm#fixV10":
   version "10.0.0"
-  resolved "https://registry.yarnpkg.com/@ethereumjs/tx/-/tx-10.0.0.tgz#100ee3cf4cb7342cabeb4f0ec41f4ccadf50df26"
-  integrity sha512-DApm04kp2nbvaOuHy2Rkcz1ZeJkTVgW6oCuNnQf9bRtGc+LsvLrdULE3LoGtBItEoNEcgXLJqrV0foooWFX6jw==
+  resolved "https://codeload.github.com/yann300/ethereumjs-vm/tar.gz/47bc5c90b40b01954651392c0fcb767de43b553f"
   dependencies:
     "@ethereumjs/common" "^10.0.0"
     "@ethereumjs/rlp" "^10.0.0"
@@ -693,15 +692,6 @@
   dependencies:
     "@ethereumjs/common" "^2.6.4"
     ethereumjs-util "^7.1.5"
-
-"@ethereumjs/tx@github:yann300/ethereumjs-vm#fixV10":
-  version "10.0.0"
-  resolved "https://codeload.github.com/yann300/ethereumjs-vm/tar.gz/47bc5c90b40b01954651392c0fcb767de43b553f"
-  dependencies:
-    "@ethereumjs/common" "^10.0.0"
-    "@ethereumjs/rlp" "^10.0.0"
-    "@ethereumjs/util" "^10.0.0"
-    ethereum-cryptography "^3.2.0"
 
 "@ethereumjs/util@^10.0.0":
   version "10.0.0"

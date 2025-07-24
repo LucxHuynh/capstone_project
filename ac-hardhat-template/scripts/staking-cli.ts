@@ -1,366 +1,284 @@
 import { ethers } from "hardhat";
-import { StakingContract, MyToken } from "../typechain";
 import readline from "readline";
 
-interface ContractAddresses {
-  token: string;
-  staking: string;
-}
+const rl = readline.createInterface({ input: process.stdin, output: process.stdout });
+const question = (prompt: string): Promise<string> => new Promise(resolve => rl.question(prompt, resolve));
 
-class StakingCLI {
-  private rl: readline.Interface;
-  private token!: MyToken;
-  private staking!: StakingContract;
-  private signer!: any;
+async function main() {
+  console.log("🚀 Staking CLI\n");
 
-  constructor() {
-    this.rl = readline.createInterface({
-      input: process.stdin,
-      output: process.stdout,
-    });
-  }
+  const [signer] = await ethers.getSigners();
+  console.log("👤 Account:", signer.address);
 
-  async initialize() {
-    console.log("🚀 Staking Contract CLI");
-    console.log("=".repeat(40));
+  // Quick deploy for testing
+  console.log("Deploying contracts...");
+  const TokenFactory = await ethers.getContractFactory("MyToken");
+  const token = await TokenFactory.deploy("USDC", "USDC", ethers.parseEther("1000000"));
+  await token.waitForDeployment();
+  
+  const StakingFactory = await ethers.getContractFactory("StakingContract");
+  const staking = await StakingFactory.deploy(await token.getAddress());
+  await staking.waitForDeployment();
+  
+  // Setup balances
+  await token.transfer(signer.address, ethers.parseEther("10000"));
+  await token.transfer(await staking.getAddress(), ethers.parseEther("100000"));
+  
+  console.log("📄 Contracts deployed successfully!\n");
 
-    // Get contract addresses
-    const addresses = await this.getContractAddresses();
-    
-    // Get signer
-    const signers = await ethers.getSigners();
-    this.signer = signers[0];
-    console.log("👤 Account:", this.signer.address);
+  const isOwner = (await staking.owner()).toLowerCase() === signer.address.toLowerCase();
 
-    // Connect to contracts
-    this.token = await ethers.getContractAt("MyToken", addresses.token);
-    this.staking = await ethers.getContractAt("StakingContract", addresses.staking);
-
-    console.log("✅ Connected");
-    console.log("📄 Token:", addresses.token);
-    console.log("📄 Staking:", addresses.staking);
-    console.log("");
-  }
-
-  private async getContractAddresses(): Promise<ContractAddresses> {
-    try {
-      const { deployments } = require("hardhat");
-      const tokenDeployment = await deployments.get("MyToken");
-      const stakingDeployment = await deployments.get("StakingContract");
-      
-      return {
-        token: tokenDeployment.address,
-        staking: stakingDeployment.address,
-      };
-    } catch {
-      console.log("📝 Enter contract addresses:");
-      const token = await this.question("Token address: ");
-      const staking = await this.question("Staking address: ");
-      return { token, staking };
-    }
-  }
-
-  private question(prompt: string): Promise<string> {
-    return new Promise((resolve) => {
-      this.rl.question(prompt, resolve);
-    });
-  }
-
-  async showMenu() {
-    console.log("\n📋 Commands:");
-    console.log("1. Check balances");
-    console.log("2. View staking rates");
-    console.log("3. Deposit tokens");
-    console.log("4. View my stakes");
-    console.log("5. Claim rewards");
-    console.log("6. Withdraw stake");
-    console.log("7. Approve tokens");
-    console.log("8. Emergency withdraw (owner)");
+  while (true) {
+    console.log("📋 Menu:");
+    console.log("1. Deposit  2. View Stakes  3. Withdraw  4. Claim");
+    if (isOwner) console.log("5. Admin");
     console.log("0. Exit");
 
-    const choice = await this.question("\nChoose (0-8): ");
-    await this.handleChoice(choice);
-  }
+    const choice = await question("Choose: ");
 
-  private async handleChoice(choice: string) {
     try {
-      switch (choice) {
-        case "1": await this.checkBalances(); break;
-        case "2": await this.viewRates(); break;
-        case "3": await this.depositTokens(); break;
-        case "4": await this.viewMyStakes(); break;
-        case "5": await this.claimRewards(); break;
-        case "6": await this.withdrawStake(); break;
-        case "7": await this.approveTokens(); break;
-        case "8": await this.emergencyWithdraw(); break;
-        case "0":
-          console.log("👋 Goodbye!");
-          this.rl.close();
-          return;
-        default:
-          console.log("❌ Invalid option");
-      }
+      if (choice === "1") await deposit(token, staking, signer);
+      else if (choice === "2") await viewStakes(staking, signer);
+      else if (choice === "3") await withdraw(staking, signer);
+      else if (choice === "4") await claim(staking, signer);
+      else if (choice === "5" && isOwner) await admin(staking, token, signer);
+      else if (choice === "0") break;
+      else console.log("❌ Invalid choice");
     } catch (error: any) {
       console.log("❌ Error:", error.message);
     }
-
-    await this.showMenu();
   }
 
-  private async checkBalances() {
-    console.log("\n💰 Balances:");
-    
-    const tokenBalance = await this.token.balanceOf(this.signer.address);
-    const allowance = await this.token.allowance(this.signer.address, await this.staking.getAddress());
-    const stakeCount = await this.staking.userStakeCount(this.signer.address);
+  console.log("👋 Goodbye!");
+  rl.close();
+}
 
-    console.log("Your tokens:", ethers.formatEther(tokenBalance), "USDC");
-    console.log("Allowance:", ethers.formatEther(allowance), "USDC");
-    console.log("Total stakes:", stakeCount.toString());
+async function deposit(token: any, staking: any, signer: any) {
+  const amount = await question("Amount: ");
+  const term = await question("Term (3/6/12 months): ");
+  
+  if (!amount || !["3", "6", "12"].includes(term)) {
+    console.log("❌ Invalid input");
+    return;
   }
+  
+  const amountWei = ethers.parseEther(amount);
+  const termMap: Record<string, number> = { "3": 90, "6": 180, "12": 365 };
+  const rewardMap: Record<string, number> = { "3": 0.0025, "6": 0.0125, "12": 0.06 };
+  
+  const termSeconds = termMap[term] * 24 * 60 * 60;
+  const expectedReward = parseFloat(amount) * rewardMap[term];
+  
+  console.log("🔄 Processing...");
+  await (await token.approve(await staking.getAddress(), amountWei)).wait();
+  const tx = await staking.deposit(amountWei, termSeconds);
+  await tx.wait();
+  
+  console.log(`✅ Deposited ${amount} USDC for ${term} months`);
+  console.log(`💰 Expected reward: ${expectedReward} USDC\n`);
+}
 
-  private async viewRates() {
-    console.log("\n📊 Staking Rates:");
-    
-    const terms = {
-      "3 months": Number(await this.staking.TERM_3_MONTHS()) / (24 * 60 * 60),
-      "6 months": Number(await this.staking.TERM_6_MONTHS()) / (24 * 60 * 60),
-      "12 months": Number(await this.staking.TERM_12_MONTHS()) / (24 * 60 * 60),
-    };
-
-    const rates = {
-      "3 months": Number(await this.staking.RATE_3_MONTHS()) / 100,
-      "6 months": Number(await this.staking.RATE_6_MONTHS()) / 100,
-      "12 months": Number(await this.staking.RATE_12_MONTHS()) / 100,
-    };
-
-    console.log("Term         | Days | Rate | APY");
-    console.log("-------------|------|------|-----");
-    Object.keys(terms).forEach((term) => {
-      const days = terms[term as keyof typeof terms];
-      const rate = rates[term as keyof typeof rates];
-      const apy = rate * (365 / days);
-      console.log(`${term.padEnd(12)} | ${days.toString().padEnd(4)} | ${rate}% | ${apy.toFixed(1)}%`);
-    });
-
-    console.log("\nPenalty for early withdrawal: 1%");
+async function viewStakes(staking: any, signer: any) {
+  const count = Number(await staking.userStakeCount(signer.address));
+  
+  if (count === 0) {
+    console.log("❌ No stakes found\n");
+    return;
   }
-
-  private async depositTokens() {
-    console.log("\n💳 Deposit Tokens:");
-    
-    const amount = await this.question("Amount to stake: ");
-    const termChoice = await this.question("Term (3/6/12 months): ");
-    
-    let termSeconds: number;
-    switch (termChoice) {
-      case "3":
-        termSeconds = Number(await this.staking.TERM_3_MONTHS());
-        break;
-      case "6":
-        termSeconds = Number(await this.staking.TERM_6_MONTHS());
-        break;
-      case "12":
-        termSeconds = Number(await this.staking.TERM_12_MONTHS());
-        break;
-      default:
-        throw new Error("Invalid term. Choose 3, 6, or 12");
-    }
-
-    const amountWei = ethers.parseEther(amount);
-    
-    // Check allowance
-    const allowance = await this.token.allowance(this.signer.address, await this.staking.getAddress());
-    if (allowance < amountWei) {
-      console.log("⚠️ Insufficient allowance. Run option 7 to approve first.");
-      return;
-    }
-
-    console.log("🔄 Depositing...");
-    const tx = await this.staking.deposit(amountWei, termSeconds);
-    await tx.wait();
-    
-    console.log("✅ Deposit successful!");
-    console.log("📄 TX:", tx.hash);
-
-    // Show expected reward
-    const rate = termChoice === "3" ? 1 : termChoice === "6" ? 2.5 : 6;
-    const expectedReward = parseFloat(amount) * (rate / 100);
-    console.log(`💰 Expected reward: ${expectedReward} USDC after ${termChoice} months`);
-  }
-
-  private async viewMyStakes() {
-    console.log("\n📈 Your Stakes:");
-    
-    const stakeCount = await this.staking.userStakeCount(this.signer.address);
-    
-    if (stakeCount === 0n) {
-      console.log("No stakes found");
-      return;
-    }
-
-    console.log("\nID | Amount | Rate | End Date   | Status    | Reward");
-    console.log("---|--------|------|------------|-----------|-------");
-
-    for (let i = 0; i < Number(stakeCount); i++) {
-      try {
-        const stake = await this.staking.getStake(this.signer.address, i);
-        
-        const endDate = new Date(Number(stake.endTime) * 1000);
-        const now = new Date();
-        const isCompleted = now >= endDate;
-        const isWithdrawn = stake.withdrawn;
-
-        let status = "Active";
-        if (isWithdrawn) status = "Withdrawn";
-        else if (isCompleted) status = "Ready";
-
-        const amount = ethers.formatEther(stake.amount);
-        const rate = Number(stake.rate) / 100;
-        const endDateStr = endDate.toLocaleDateString();
-        const claimed = ethers.formatEther(stake.rewardClaimed);
-
-        let availableReward = "0";
-        if (!isWithdrawn && isCompleted) {
-          const reward = await this.staking.getReward(this.signer.address, i);
-          availableReward = ethers.formatEther(reward);
-        }
-
-        console.log(`${i.toString().padEnd(2)} | ${amount.padEnd(6)} | ${rate}% | ${endDateStr} | ${status.padEnd(9)} | ${availableReward}`);
-      } catch (error) {
-        console.log(`${i} | Error reading stake`);
-      }
-    }
-  }
-
-  private async claimRewards() {
-    console.log("\n🎁 Claim Rewards:");
-    
-    const stakeId = await this.question("Stake ID to claim: ");
-    
-    // Check if claimable
-    const reward = await this.staking.getReward(this.signer.address, parseInt(stakeId));
-    if (reward === 0n) {
-      console.log("❌ No rewards available for this stake");
-      return;
-    }
-
-    console.log(`💰 Available reward: ${ethers.formatEther(reward)} USDC`);
-    const confirm = await this.question("Confirm claim? (y/N): ");
-    
-    if (confirm.toLowerCase() !== 'y') {
-      console.log("❌ Cancelled");
-      return;
-    }
-
-    console.log("🔄 Claiming...");
-    const tx = await this.staking.claim(parseInt(stakeId));
-    await tx.wait();
-    
-    console.log("✅ Rewards claimed!");
-    console.log("📄 TX:", tx.hash);
-  }
-
-  private async withdrawStake() {
-    console.log("\n💸 Withdraw Stake:");
-    
-    const stakeId = await this.question("Stake ID to withdraw: ");
-    
-    // Get stake info
-    const stake = await this.staking.getStake(this.signer.address, parseInt(stakeId));
+  
+  console.log(`\n📈 Your ${count} stakes:`);
+  
+  for (let i = 0; i < count; i++) {
+    const stake = await staking.getStake(signer.address, i);
     const endDate = new Date(Number(stake.endTime) * 1000);
-    const now = new Date();
-    const isEarly = now < endDate;
-
-    console.log(`📋 Stake info:`);
-    console.log(`   Amount: ${ethers.formatEther(stake.amount)} USDC`);
-    console.log(`   End date: ${endDate.toLocaleDateString()}`);
+    const isReady = Date.now() >= Number(stake.endTime) * 1000;
+    const amount = ethers.formatEther(stake.amount);
+    const rate = Number(stake.rate) / 100;
     
-    if (isEarly) {
-      const penalty = parseFloat(ethers.formatEther(stake.amount)) * 0.01;
-      const received = parseFloat(ethers.formatEther(stake.amount)) - penalty;
-      console.log(`⚠️ EARLY WITHDRAWAL`);
-      console.log(`   Penalty: ${penalty} USDC (1%)`);
-      console.log(`   You'll receive: ${received} USDC`);
+    console.log(`\n[${i}] ${amount} USDC at ${rate}%`);
+    console.log(`    End: ${endDate.toLocaleDateString()}`);
+    
+    if (stake.withdrawn) {
+      console.log(`    Status: WITHDRAWN ✅`);
+    } else if (isReady) {
+      const reward = ethers.formatEther(await staking.getReward(signer.address, i));
+      console.log(`    Status: READY 🎉 (${reward} USDC reward)`);
     } else {
-      const reward = await this.staking.getReward(this.signer.address, parseInt(stakeId));
-      const total = parseFloat(ethers.formatEther(stake.amount)) + parseFloat(ethers.formatEther(reward));
-      console.log(`✅ NORMAL WITHDRAWAL`);
-      console.log(`   Reward: ${ethers.formatEther(reward)} USDC`);
-      console.log(`   Total: ${total} USDC`);
+      const penaltyRate = Number(await staking.PENALTY_RATE()) / 100;
+      console.log(`    Status: LOCKED ⏳ (${penaltyRate}% penalty if early)`);
     }
+  }
+  console.log();
+}
 
-    const confirm = await this.question("Confirm withdrawal? (y/N): ");
+async function withdraw(staking: any, signer: any) {
+  const count = Number(await staking.userStakeCount(signer.address));
+  if (count === 0) {
+    console.log("❌ No stakes found\n");
+    return;
+  }
+  
+  // Show available stakes
+  console.log("\n📤 Available stakes:");
+  for (let i = 0; i < count; i++) {
+    const stake = await staking.getStake(signer.address, i);
+    if (stake.withdrawn) continue;
     
-    if (confirm.toLowerCase() !== 'y') {
-      console.log("❌ Cancelled");
+    const amount = ethers.formatEther(stake.amount);
+    const isEarly = Date.now() < Number(stake.endTime) * 1000;
+    console.log(`[${i}] ${amount} USDC - ${isEarly ? "🔒 Early" : "✅ Ready"}`);
+  }
+  
+  const id = await question("\nStake ID: ");
+  const stakeId = parseInt(id);
+  
+  if (isNaN(stakeId) || stakeId >= count) {
+    console.log("❌ Invalid stake ID");
+    return;
+  }
+  
+  const stake = await staking.getStake(signer.address, stakeId);
+  if (stake.withdrawn) {
+    console.log("❌ Already withdrawn");
+    return;
+  }
+  
+  const amount = ethers.formatEther(stake.amount);
+  const isEarly = Date.now() < Number(stake.endTime) * 1000;
+  
+  if (isEarly) {
+    const penaltyRate = Number(await staking.PENALTY_RATE()) / 10000; // Fix: chia 10000 thay vì 100
+    const penalty = parseFloat(amount) * penaltyRate;
+    const willReceive = parseFloat(amount) - penalty;
+    console.log(`⚠️ Early withdrawal: ${willReceive} USDC (${penalty} USDC penalty)`);
+  } else {
+    const reward = ethers.formatEther(await staking.getReward(signer.address, stakeId));
+    console.log(`✅ Normal withdrawal: ${parseFloat(amount) + parseFloat(reward)} USDC total`);
+  }
+  
+  const confirm = await question("Confirm? (y/N): ");
+  if (confirm.toLowerCase() === 'y') {
+    console.log("🔄 Processing...");
+    const tx = await staking.withdraw(stakeId);
+    await tx.wait();
+    console.log("✅ Withdrawal successful!\n");
+  }
+}
+
+async function claim(staking: any, signer: any) {
+  const count = Number(await staking.userStakeCount(signer.address));
+  if (count === 0) {
+    console.log("❌ No stakes found\n");
+    return;
+  }
+  
+  // Show claimable stakes
+  console.log("\n🎁 Claimable rewards:");
+  let hasClaimable = false;
+  
+  for (let i = 0; i < count; i++) {
+    const stake = await staking.getStake(signer.address, i);
+    if (stake.withdrawn || Date.now() < Number(stake.endTime) * 1000) continue;
+    
+    const reward = await staking.getReward(signer.address, i);
+    if (Number(reward) === 0) continue;
+    
+    hasClaimable = true;
+    console.log(`[${i}] ${ethers.formatEther(reward)} USDC`);
+  }
+  
+  if (!hasClaimable) {
+    console.log("❌ No claimable rewards\n");
+    return;
+  }
+  
+  const id = await question("\nStake ID: ");
+  const stakeId = parseInt(id);
+  
+  if (isNaN(stakeId) || stakeId >= count) {
+    console.log("❌ Invalid stake ID");
+    return;
+  }
+  
+  const reward = await staking.getReward(signer.address, stakeId);
+  if (Number(reward) === 0) {
+    console.log("❌ No reward available");
+    return;
+  }
+  
+  console.log("🔄 Processing...");
+  const tx = await staking.claim(stakeId);
+  await tx.wait();
+  console.log(`✅ Claimed ${ethers.formatEther(reward)} USDC!\n`);
+}
+
+async function admin(staking: any, token: any, signer: any) {
+  console.log("\n🔑 Admin Menu:");
+  console.log("1. View Rates  2. Set Rate  3. Set Penalty  4. Emergency Withdraw  0. Back");
+  
+  const choice = await question("Admin choice: ");
+  
+  if (choice === "1") {
+    const rates = await Promise.all([
+      staking.RATE_3_MONTHS(),
+      staking.RATE_6_MONTHS(), 
+      staking.RATE_12_MONTHS(),
+      staking.PENALTY_RATE()
+    ]);
+    
+    console.log("\n📊 Current Rates:");
+    console.log(`3M: ${Number(rates[0])/100}%  6M: ${Number(rates[1])/100}%  12M: ${Number(rates[2])/100}%`);
+    console.log(`Penalty: ${Number(rates[3])/100}%\n`);
+    
+  } else if (choice === "2") {
+    const term = await question("Term (3/6/12): ");
+    const rate = await question("New rate (%): ");
+    
+    if (!["3", "6", "12"].includes(term) || isNaN(parseFloat(rate)) || parseFloat(rate) > 50) {
+      console.log("❌ Invalid input");
       return;
     }
-
-    console.log("🔄 Withdrawing...");
-    const tx = await this.staking.withdraw(parseInt(stakeId));
+    
+    const termMap: Record<string, number> = { "3": 90, "6": 180, "12": 365 };
+    const termSeconds = termMap[term] * 24 * 60 * 60;
+    const rateValue = parseFloat(rate) * 100;
+    
+    console.log("🔄 Processing...");
+    const tx = await staking.setTermRate(termSeconds, rateValue);
     await tx.wait();
+    console.log(`✅ Set ${term}M rate to ${rate}%\n`);
     
-    console.log("✅ Withdrawal successful!");
-    console.log("📄 TX:", tx.hash);
-  }
-
-  private async approveTokens() {
-    console.log("\n✅ Approve Tokens:");
+  } else if (choice === "3") {
+    const rate = await question("New penalty rate (%): ");
     
-    const amount = await this.question("Amount to approve (or 'max'): ");
-    const amountWei = amount === "max" 
-      ? ethers.MaxUint256 
-      : ethers.parseEther(amount);
-    
-    console.log("🔄 Approving...");
-    const tx = await this.token.approve(await this.staking.getAddress(), amountWei);
-    await tx.wait();
-    
-    console.log("✅ Approval successful!");
-    console.log("📄 TX:", tx.hash);
-  }
-
-  private async emergencyWithdraw() {
-    console.log("\n🚨 Emergency Withdraw (Owner Only):");
-    
-    const amount = await this.question("Amount to withdraw: ");
-    const amountWei = ethers.parseEther(amount);
-    
-    console.log("⚠️ This is for emergency situations only!");
-    const confirm = await this.question("Are you sure? (y/N): ");
-    
-    if (confirm.toLowerCase() !== 'y') {
-      console.log("❌ Cancelled");
+    if (isNaN(parseFloat(rate)) || parseFloat(rate) > 10) {
+      console.log("❌ Invalid rate (max 10%)");
       return;
     }
-
-    console.log("🔄 Emergency withdrawing...");
-    const tx = await this.staking.emergencyWithdraw(amountWei);
-    await tx.wait();
     
-    console.log("✅ Emergency withdrawal successful!");
-    console.log("📄 TX:", tx.hash);
-  }
-
-  async run() {
-    try {
-      await this.initialize();
-      await this.showMenu();
-    } catch (error: any) {
-      console.log("❌ Fatal error:", error.message);
-      this.rl.close();
+    console.log("🔄 Processing...");
+    const tx = await staking.setPenaltyRate(parseFloat(rate) * 100);
+    await tx.wait();
+    console.log(`✅ Set penalty to ${rate}%\n`);
+    
+  } else if (choice === "4") {
+    const balance = await token.balanceOf(await staking.getAddress());
+    console.log(`Contract balance: ${ethers.formatEther(balance)} USDC`);
+    
+    const amount = await question("Amount to withdraw: ");
+    if (isNaN(parseFloat(amount))) {
+      console.log("❌ Invalid amount");
+      return;
+    }
+    
+    const confirm = await question("⚠️ Emergency withdraw? (yes/no): ");
+    if (confirm.toLowerCase() === 'yes') {
+      console.log("🔄 Processing...");
+      const tx = await staking.emergencyWithdraw(ethers.parseEther(amount));
+      await tx.wait();
+      console.log(`✅ Emergency withdrew ${amount} USDC\n`);
     }
   }
 }
 
-// Main execution
-async function main() {
-  const cli = new StakingCLI();
-  await cli.run();
-}
-
-main().catch((error) => {
-  console.error("❌ Error:", error);
-  process.exitCode = 1;
-});
+main().catch(console.error);

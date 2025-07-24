@@ -12,11 +12,6 @@
     },
     {
         "inputs": [],
-        "name": "InsufficientBalance",
-        "type": "error"
-    },
-    {
-        "inputs": [],
         "name": "InvalidInput",
         "type": "error"
     },
@@ -147,6 +142,50 @@
         "anonymous": false,
         "inputs": [
             {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "oldRate",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "newRate",
+                "type": "uint256"
+            }
+        ],
+        "name": "PenaltyRateUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
+                "indexed": true,
+                "internalType": "uint256",
+                "name": "term",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "oldRate",
+                "type": "uint256"
+            },
+            {
+                "indexed": false,
+                "internalType": "uint256",
+                "name": "newRate",
+                "type": "uint256"
+            }
+        ],
+        "name": "TermRateUpdated",
+        "type": "event"
+    },
+    {
+        "anonymous": false,
+        "inputs": [
+            {
                 "indexed": true,
                 "internalType": "address",
                 "name": "user",
@@ -161,7 +200,7 @@
             {
                 "indexed": false,
                 "internalType": "uint256",
-                "name": "principal",
+                "name": "amount",
                 "type": "uint256"
             },
             {
@@ -242,7 +281,7 @@
                 "type": "uint256"
             }
         ],
-        "stateMutability": "view",
+        "stateMutability": "pure",
         "type": "function"
     },
     {
@@ -255,12 +294,31 @@
                 "type": "uint256"
             }
         ],
-        "stateMutability": "view",
+        "stateMutability": "pure",
         "type": "function"
     },
     {
         "inputs": [],
         "name": "TERM_6_MONTHS",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "pure",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "availableTerms",
         "outputs": [
             {
                 "internalType": "uint256",
@@ -316,6 +374,19 @@
         "type": "function"
     },
     {
+        "inputs": [],
+        "name": "getAvailableTerms",
+        "outputs": [
+            {
+                "internalType": "uint256[]",
+                "name": "",
+                "type": "uint256[]"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
         "inputs": [
             {
                 "internalType": "address",
@@ -362,11 +433,6 @@
                         "type": "uint128"
                     },
                     {
-                        "internalType": "uint128",
-                        "name": "rewardClaimed",
-                        "type": "uint128"
-                    },
-                    {
                         "internalType": "uint64",
                         "name": "endTime",
                         "type": "uint64"
@@ -374,6 +440,11 @@
                     {
                         "internalType": "uint32",
                         "name": "rate",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "rewardClaimed",
                         "type": "uint32"
                     },
                     {
@@ -408,11 +479,6 @@
                         "type": "uint128"
                     },
                     {
-                        "internalType": "uint128",
-                        "name": "rewardClaimed",
-                        "type": "uint128"
-                    },
-                    {
                         "internalType": "uint64",
                         "name": "endTime",
                         "type": "uint64"
@@ -420,6 +486,11 @@
                     {
                         "internalType": "uint32",
                         "name": "rate",
+                        "type": "uint32"
+                    },
+                    {
+                        "internalType": "uint32",
+                        "name": "rewardClaimed",
                         "type": "uint32"
                     },
                     {
@@ -451,7 +522,51 @@
     },
     {
         "inputs": [],
+        "name": "penaltyRate",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [],
         "name": "renounceOwnership",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "newRate",
+                "type": "uint256"
+            }
+        ],
+        "name": "setPenaltyRate",
+        "outputs": [],
+        "stateMutability": "nonpayable",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "term",
+                "type": "uint256"
+            },
+            {
+                "internalType": "uint256",
+                "name": "newRate",
+                "type": "uint256"
+            }
+        ],
+        "name": "setTermRate",
         "outputs": [],
         "stateMutability": "nonpayable",
         "type": "function"
@@ -464,6 +579,25 @@
                 "internalType": "contract IERC20",
                 "name": "",
                 "type": "address"
+            }
+        ],
+        "stateMutability": "view",
+        "type": "function"
+    },
+    {
+        "inputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
+            }
+        ],
+        "name": "termRates",
+        "outputs": [
+            {
+                "internalType": "uint256",
+                "name": "",
+                "type": "uint256"
             }
         ],
         "stateMutability": "view",
@@ -496,50 +630,6 @@
                 "internalType": "uint256",
                 "name": "",
                 "type": "uint256"
-            }
-        ],
-        "stateMutability": "view",
-        "type": "function"
-    },
-    {
-        "inputs": [
-            {
-                "internalType": "address",
-                "name": "",
-                "type": "address"
-            },
-            {
-                "internalType": "uint256",
-                "name": "",
-                "type": "uint256"
-            }
-        ],
-        "name": "userStakes",
-        "outputs": [
-            {
-                "internalType": "uint128",
-                "name": "amount",
-                "type": "uint128"
-            },
-            {
-                "internalType": "uint128",
-                "name": "rewardClaimed",
-                "type": "uint128"
-            },
-            {
-                "internalType": "uint64",
-                "name": "endTime",
-                "type": "uint64"
-            },
-            {
-                "internalType": "uint32",
-                "name": "rate",
-                "type": "uint32"
-            },
-            {
-                "internalType": "bool",
-                "name": "withdrawn",
-                "type": "bool"
             }
         ],
         "stateMutability": "view",

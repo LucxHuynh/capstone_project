@@ -11,120 +11,152 @@ contract StakingContract is Ownable, ReentrancyGuard {
 
     IERC20 public immutable stakingToken;
     
-    uint256 public constant TERM_3_MONTHS = 90 days;
-    uint256 public constant TERM_6_MONTHS = 180 days;
-    uint256 public constant TERM_12_MONTHS = 365 days;
-    
-    uint256 public constant RATE_3_MONTHS = 100;    // 1%
-    uint256 public constant RATE_6_MONTHS = 250;    // 2.5%
-    uint256 public constant RATE_12_MONTHS = 600;   // 6%
-    uint256 public constant PENALTY_RATE = 100;     // 1%
-
     struct Stake {
         uint128 amount;
-        uint128 rewardClaimed;
         uint64 endTime;
         uint32 rate;
+        uint32 rewardClaimed;
         bool withdrawn;
     }
 
-    mapping(address => Stake[]) public userStakes;
+    mapping(uint256 => uint256) public termRates;
+    mapping(address => Stake[]) private _userStakes;
     mapping(address => uint256) public userStakeCount;
+    uint256[] public availableTerms;
+    uint256 public penaltyRate = 100;
 
     event Deposited(address indexed user, uint256 indexed stakeId, uint256 amount, uint256 term);
     event Claimed(address indexed user, uint256 indexed stakeId, uint256 reward);
-    event Withdrawn(address indexed user, uint256 indexed stakeId, uint256 principal, uint256 reward, uint256 penalty);
+    event Withdrawn(address indexed user, uint256 indexed stakeId, uint256 amount, uint256 reward, uint256 penalty);
+    event TermRateUpdated(uint256 indexed term, uint256 oldRate, uint256 newRate);
+    event PenaltyRateUpdated(uint256 oldRate, uint256 newRate);
 
     error InvalidInput();
     error InvalidStake();
     error NotReady();
-    error InsufficientBalance();
 
     constructor(address _token) Ownable(msg.sender) {
         stakingToken = IERC20(_token);
+        uint256[3] memory terms = [uint256(90 days), 180 days, 365 days];
+        uint256[3] memory rates = [uint256(25), 125, 600];
+        for (uint256 i; i < 3; ++i) {
+            termRates[terms[i]] = rates[i];
+            availableTerms.push(terms[i]);
+        }
     }
 
     function deposit(uint256 amount, uint256 term) external nonReentrant {
-        if (amount == 0) revert InvalidInput();
-        
-        uint256 rate;
-        if (term == TERM_3_MONTHS) rate = RATE_3_MONTHS;
-        else if (term == TERM_6_MONTHS) rate = RATE_6_MONTHS;
-        else if (term == TERM_12_MONTHS) rate = RATE_12_MONTHS;
-        else revert InvalidInput();
+        if (amount == 0 || termRates[term] == 0) revert InvalidInput();
         
         stakingToken.safeTransferFrom(msg.sender, address(this), amount);
-
-        userStakes[msg.sender].push(Stake({
+        _userStakes[msg.sender].push(Stake({
             amount: uint128(amount),
-            rewardClaimed: 0,
             endTime: uint64(block.timestamp + term),
-            rate: uint32(rate),
+            rate: uint32(termRates[term]),
+            rewardClaimed: 0,
             withdrawn: false
         }));
-
+        
         emit Deposited(msg.sender, userStakeCount[msg.sender]++, amount, term);
     }
 
     function claim(uint256 stakeId) external nonReentrant {
-        if (stakeId >= userStakeCount[msg.sender]) revert InvalidStake();
-        
-        Stake storage s = userStakes[msg.sender][stakeId];
-        if (s.withdrawn) revert InvalidStake();
+        Stake storage s = _getValidStake(msg.sender, stakeId);
         if (block.timestamp < s.endTime) revert NotReady();
-
-        uint256 reward = (uint256(s.amount) * s.rate) / 10000 - s.rewardClaimed;
-        if (reward == 0) revert InvalidInput();
-
-        s.rewardClaimed += uint128(reward);
-        stakingToken.safeTransfer(msg.sender, reward);
         
+        uint256 reward = (uint256(s.amount) * (s.rate - s.rewardClaimed)) / 10000;
+        if (reward == 0) revert InvalidInput();
+        
+        s.rewardClaimed = s.rate;
+        stakingToken.safeTransfer(msg.sender, reward);
         emit Claimed(msg.sender, stakeId, reward);
     }
 
     function withdraw(uint256 stakeId) external nonReentrant {
-        if (stakeId >= userStakeCount[msg.sender]) revert InvalidStake();
+        Stake storage s = _getValidStake(msg.sender, stakeId);
         
-        Stake storage s = userStakes[msg.sender][stakeId];
-        if (s.withdrawn) revert InvalidStake();
-
-        uint256 amount;
+        uint256 amount = s.amount;
         uint256 penalty = 0;
         uint256 reward = 0;
-
+        
         if (block.timestamp < s.endTime) {
-            // Early withdrawal
-            penalty = (uint256(s.amount) * PENALTY_RATE) / 10000;
-            amount = s.amount - penalty;
+            penalty = (amount * penaltyRate) / 10000;
+            amount -= penalty;
         } else {
-            // Normal withdrawal
-            reward = (uint256(s.amount) * s.rate) / 10000 - s.rewardClaimed;
-            amount = s.amount + reward;
+            reward = (amount * (s.rate - s.rewardClaimed)) / 10000;
+            amount += reward;
         }
-
+        
         s.withdrawn = true;
         stakingToken.safeTransfer(msg.sender, amount);
-        
         emit Withdrawn(msg.sender, stakeId, s.amount, reward, penalty);
     }
 
+    function setTermRate(uint256 term, uint256 newRate) external onlyOwner {
+        if (newRate > 5000) revert InvalidInput();
+        
+        uint256 oldRate = termRates[term];
+        termRates[term] = newRate;
+        
+        if (oldRate == 0 && newRate > 0) availableTerms.push(term);
+        else if (oldRate > 0 && newRate == 0) _removeFromAvailableTerms(term);
+        
+        emit TermRateUpdated(term, oldRate, newRate);
+    }
+
+    function setPenaltyRate(uint256 newRate) external onlyOwner {
+        if (newRate > 1000) revert InvalidInput();
+        emit PenaltyRateUpdated(penaltyRate, newRate);
+        penaltyRate = newRate;
+    }
+
     function emergencyWithdraw(uint256 amount) external onlyOwner {
-        stakingToken.safeTransfer(owner(), amount);
+        stakingToken.safeTransfer(msg.sender, amount);
     }
 
     function getStake(address user, uint256 stakeId) external view returns (Stake memory) {
         if (stakeId >= userStakeCount[user]) revert InvalidStake();
-        return userStakes[user][stakeId];
+        return _userStakes[user][stakeId];
     }
 
     function getStakes(address user) external view returns (Stake[] memory) {
-        return userStakes[user];
+        return _userStakes[user];
     }
 
     function getReward(address user, uint256 stakeId) external view returns (uint256) {
         if (stakeId >= userStakeCount[user]) return 0;
-        Stake memory s = userStakes[user][stakeId];
-        if (s.withdrawn || block.timestamp < s.endTime) return 0;
-        return (uint256(s.amount) * s.rate) / 10000 - s.rewardClaimed;
+        Stake memory s = _userStakes[user][stakeId];
+        return (s.withdrawn || block.timestamp < s.endTime) ? 0 : 
+               (uint256(s.amount) * (s.rate - s.rewardClaimed)) / 10000;
+    }
+
+    function getAvailableTerms() external view returns (uint256[] memory) {
+        return availableTerms;
+    }
+
+    // Backward compatibility
+    function TERM_3_MONTHS() external pure returns (uint256) { return 90 days; }
+    function TERM_6_MONTHS() external pure returns (uint256) { return 180 days; }
+    function TERM_12_MONTHS() external pure returns (uint256) { return 365 days; }
+    function RATE_3_MONTHS() external view returns (uint256) { return termRates[90 days]; }
+    function RATE_6_MONTHS() external view returns (uint256) { return termRates[180 days]; }
+    function RATE_12_MONTHS() external view returns (uint256) { return termRates[365 days]; }
+    function PENALTY_RATE() external view returns (uint256) { return penaltyRate; }
+
+    function _getValidStake(address user, uint256 stakeId) internal view returns (Stake storage) {
+        if (stakeId >= userStakeCount[user]) revert InvalidStake();
+        Stake storage s = _userStakes[user][stakeId];
+        if (s.withdrawn) revert InvalidStake();
+        return s;
+    }
+
+    function _removeFromAvailableTerms(uint256 term) internal {
+        for (uint256 i; i < availableTerms.length; ++i) {
+            if (availableTerms[i] == term) {
+                availableTerms[i] = availableTerms[availableTerms.length - 1];
+                availableTerms.pop();
+                break;
+            }
+        }
     }
 }
