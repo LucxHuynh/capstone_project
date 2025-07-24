@@ -41,43 +41,35 @@ yarn test
 yarn test test/StakingContract.test.ts
 ```
 
-## 🚀 Deploy
+## 🚀 Deploy & Run
 
-### Local Network
+### Option 1: Local Development
 ```bash
 # Terminal 1: Start local node
 yarn hardhat node
 
-# Terminal 2: Deploy
-yarn hardhat deploy --tags StakingContract
-```
-
-### Sepolia Testnet
-```bash
-# Deploy to testnet
-yarn hardhat deploy --network sepolia --tags StakingContract
-
-# Verify contract
-yarn hardhat verify --network sepolia <STAKING_CONTRACT_ADDRESS> <TOKEN_ADDRESS>
-```
-
-### Ethereum Mainnet
-```bash
-# Deploy to mainnet (THẬN TRỌNG!)
-yarn hardhat deploy --network ethereum --tags StakingContract
-```
-
-## Run CLI
-
-### Localhost
-```bash
-# Terminal 1 (để chạy liên tục)
-yarn hardhat node
-
-# Terminal 2 (commands). Deploy in another terminal
+# Terminal 2: Deploy contracts
 yarn hardhat deploy --tags StakingContract --network localhost
 
-# Run CLI (other terminal)
+# Terminal 3: Run CLI
+yarn hardhat run scripts/staking-cli.ts --network localhost
+```
+
+### Option 2: Testnet (Sepolia)
+```bash
+# 1. Deploy contracts
+yarn hardhat deploy --tags StakingContract --network sepolia
+
+# 2. Run CLI (connects to deployed contracts)
+yarn hardhat run scripts/staking-cli.ts --network sepolia
+
+# 3. Verify contracts (optional)
+yarn hardhat verify --network sepolia <STAKING_ADDRESS> <TOKEN_ADDRESS>
+```
+
+### Option 3: Quick Test (Auto-deploy)
+```bash
+# CLI sẽ tự động deploy contracts mới nếu không tìm thấy
 yarn hardhat run scripts/staking-cli.ts --network localhost
 ```
 
@@ -117,17 +109,25 @@ ac-hardhat-template/
 ## 🎯 Quick Commands
 
 ```bash
-yarn compile          # Compile contracts
-yarn test            # Run all tests
-yarn clean           # Clean build
-yarn size            # Check contract sizes
-yarn node            # Start local blockchain
+yarn compile                                    # Compile contracts
+yarn test                                       # Run all tests
+yarn clean                                      # Clean build
+yarn size                                       # Check contract sizes
+yarn node                                       # Start local blockchain
+
+# Deploy to different networks
+yarn hardhat deploy --tags StakingContract --network localhost
+yarn hardhat deploy --tags StakingContract --network sepolia
+
+# Run CLI on different networks  
+yarn hardhat run scripts/staking-cli.ts --network localhost
+yarn hardhat run scripts/staking-cli.ts --network sepolia
 ```
 
 ## 📋 Test Results
 
 ```
-✅ All 26 test cases passing
+✅ All 20 test cases passing
 ✅ Gas optimized storage
 ✅ Comprehensive edge case coverage
 ✅ Admin function security

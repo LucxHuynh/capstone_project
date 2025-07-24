@@ -10,21 +10,40 @@ async function main() {
   const [signer] = await ethers.getSigners();
   console.log("👤 Account:", signer.address);
 
-  // Quick deploy for testing
-  console.log("Deploying contracts...");
-  const TokenFactory = await ethers.getContractFactory("MyToken");
-  const token = await TokenFactory.deploy("USDC", "USDC", ethers.parseEther("1000000"));
-  await token.waitForDeployment();
-  
-  const StakingFactory = await ethers.getContractFactory("StakingContract");
-  const staking = await StakingFactory.deploy(await token.getAddress());
-  await staking.waitForDeployment();
-  
-  // Setup balances
-  await token.transfer(signer.address, ethers.parseEther("10000"));
-  await token.transfer(await staking.getAddress(), ethers.parseEther("100000"));
-  
-  console.log("📄 Contracts deployed successfully!\n");
+  let token: any, staking: any;
+
+  // Try to connect to deployed contracts first
+  try {
+    const { deployments } = require("hardhat");
+    const tokenDep = await deployments.get("MyToken");
+    const stakingDep = await deployments.get("StakingContract");
+    
+    token = await ethers.getContractAt("MyToken", tokenDep.address);
+    staking = await ethers.getContractAt("StakingContract", stakingDep.address);
+    
+    console.log("📄 Connected to deployed contracts:");
+    console.log("   Token:", tokenDep.address);
+    console.log("   Staking:", stakingDep.address);
+    console.log("");
+    
+  } catch {
+    // Fallback: Quick deploy for testing
+    console.log("📦 No deployed contracts found. Deploying new ones...");
+    
+    const TokenFactory = await ethers.getContractFactory("MyToken");
+    token = await TokenFactory.deploy("USDC", "USDC", ethers.parseEther("1000000"));
+    await token.waitForDeployment();
+    
+    const StakingFactory = await ethers.getContractFactory("StakingContract");
+    staking = await StakingFactory.deploy(await token.getAddress());
+    await staking.waitForDeployment();
+    
+    // Setup balances
+    await token.transfer(signer.address, ethers.parseEther("10000"));
+    await token.transfer(await staking.getAddress(), ethers.parseEther("100000"));
+    
+    console.log("✅ New contracts deployed!\n");
+  }
 
   const isOwner = (await staking.owner()).toLowerCase() === signer.address.toLowerCase();
 
