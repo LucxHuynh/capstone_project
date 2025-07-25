@@ -10,3 +10,4 @@ npx hardhat test
 REPORT_GAS=true npx hardhat test
 npx hardhat node
 ```
+-- Viết thêm contract giữ lãi, và khi phạt tiền thì tiền phạt sẽ gửi vào một ví khác(để dễ thực hiện report và )

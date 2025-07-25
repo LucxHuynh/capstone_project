@@ -141,3 +141,6 @@ yarn hardhat run scripts/staking-cli.ts --network sepolia
 - Test trên testnet trước
 - Backup private key an toàn
 - Contract đã được optimize và test kỹ lưỡng
+
+## Video demo
+🎥 Xem video demo tại đây: https://drive.google.com/file/d/19n5SvDr_DAURHAh6oyJa1mhj1wnDGEZf/view

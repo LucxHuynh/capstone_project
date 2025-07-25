@@ -20,7 +20,7 @@ contract StakingContract is Ownable, ReentrancyGuard {
     }
 
     mapping(uint256 => uint256) public termRates;
-    mapping(address => Stake[]) private _userStakes;
+    mapping(address => Stake[]) private _userStakes; //improved to use a mapping for user stakes uint256 ID
     mapping(address => uint256) public userStakeCount;
     uint256[] public availableTerms;
     uint256 public penaltyRate = 100;
@@ -57,7 +57,7 @@ contract StakingContract is Ownable, ReentrancyGuard {
             withdrawn: false
         }));
         
-        emit Deposited(msg.sender, userStakeCount[msg.sender]++, amount, term);
+        emit Deposited(msg.sender, userStakeCount[msg.sender]++, amount, term); // chỉnh lại để so sánh onchain với offchain cho dễ
     }
 
     function claim(uint256 stakeId) external nonReentrant {
